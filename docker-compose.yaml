@@ -1,0 +1,23 @@
+services:
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    env_file:
+      - .env
+    volumes:
+      - .:/shop
+    ports:
+      - 8000:8000
+    depends_on:
+      - elasticsearch
+  elasticsearch:
+    image: elasticsearch:7.17.25
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+    deploy:
+      resources:
+        limits:
+          memory: 1GB
