@@ -5,6 +5,10 @@ from elasticsearch_dsl import Q, Search, UpdateByQuery, Index
 
 from .serializers import ProductSerializer
 from .documents import ProductDocument
+from .utils.date_helpers import (
+    generate_datetime_now,
+    generate_epoch_millis_now,
+)
 
 class ProductView(APIView):
     def get(self, request):
@@ -31,11 +35,15 @@ class ProductView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         try:
+            now = generate_datetime_now()
+            mill = generate_epoch_millis_now()
             product = ProductDocument(
                 name=serializer.validated_data['name'],
                 price=serializer.validated_data['price'],
                 unit=serializer.validated_data['unit'],
-                discount=serializer.validated_data['discount']
+                discount=serializer.validated_data['discount'],
+                created_at=now,
+                updated_at=mill,
             )
             product.save()
             return Response({"message": "Product created successfully", "id": product.meta.id}, status=status.HTTP_201_CREATED)

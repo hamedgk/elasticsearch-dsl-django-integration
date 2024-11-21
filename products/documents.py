@@ -13,8 +13,9 @@ class ProductDocument(Document):
         price = Integer()
         discount = Short()
         unit = Text(fields={'keyword': Keyword()})
+        created_at = Date(format="yyyy-MM-dd HH:mm:ss||epoch_millis")
+        updated_at = Date(format="yyyy-MM-dd HH:mm:ss||epoch_millis")
         categories = Nested(CategoryInnerDoc)
-
         class Index:
                 name = 'products'
                 settings = {
