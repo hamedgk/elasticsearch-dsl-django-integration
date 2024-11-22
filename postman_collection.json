@@ -22,7 +22,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://127.0.0.1:8000/api/products/",
+					"raw": "http://127.0.0.1:8000/api/products/k_5GU5MBS7wwQoy3uoNb",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -34,13 +34,58 @@
 					"path": [
 						"api",
 						"products",
-						""
+						"k_5GU5MBS7wwQoy3uoNb"
 					],
 					"query": [
 						{
 							"key": "name",
 							"value": "nigga",
 							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "product termporal",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{bearer}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://127.0.0.1:8000/api/products/temporal/?gte=2023-01-01&lte=",
+					"protocol": "http",
+					"host": [
+						"127",
+						"0",
+						"0",
+						"1"
+					],
+					"port": "8000",
+					"path": [
+						"api",
+						"products",
+						"temporal",
+						""
+					],
+					"query": [
+						{
+							"key": "gte",
+							"value": "2023-01-01"
+						},
+						{
+							"key": "lte",
+							"value": ""
 						}
 					]
 				}
@@ -196,7 +241,7 @@
 					"variable": [
 						{
 							"key": "id",
-							"value": "HJEY9JIBHHC1n3fwKMa-"
+							"value": "k_5GU5MBS7wwQoy3uoNb"
 						}
 					]
 				}
@@ -565,12 +610,15 @@
 		},
 		{
 			"name": "direct index delete",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
-				"method": "POST",
+				"method": "GET",
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"name\" : \"nigga\",\n    \"price\" : 15,\n    \"unit\" : \"package\",\n    \"discount\" : null\n}",
+					"raw": "",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -578,7 +626,7 @@
 					}
 				},
 				"url": {
-					"raw": "http://127.0.0.1:9200/products/_doc",
+					"raw": "http://127.0.0.1:9200/products/_mappings",
 					"protocol": "http",
 					"host": [
 						"127",
@@ -589,7 +637,7 @@
 					"port": "9200",
 					"path": [
 						"products",
-						"_doc"
+						"_mappings"
 					]
 				}
 			},
