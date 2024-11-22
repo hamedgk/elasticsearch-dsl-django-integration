@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from elasticsearch_dsl import Q, Search, UpdateByQuery, Index
+from django.utils.dateparse import parse_datetime
 
 from .serializers import ProductSerializer
 from .documents import ProductDocument
@@ -11,7 +12,13 @@ from .utils.date_helpers import (
 )
 
 class ProductView(APIView):
-    def get(self, request):
+    def get(self, request, pk=None):
+        if pk:
+            product = ProductDocument.get(id=pk)
+            if not product:
+                return Response({"error": "Product Not Found"}, status=status.HTTP_404_NOT_FOUND)
+            return Response(product.json_serializable())
+
         search = ProductDocument.search()
         name = request.query_params.get('name', None)
         unit = request.query_params.get('unit', None)
@@ -62,11 +69,13 @@ class ProductView(APIView):
         
         try:
             product = ProductDocument.get(id=pk)
+            if not product:
+                return Response({"error": "Product Not Found"}, status=status.HTTP_404_NOT_FOUND)
             product.name = serializer.validated_data['name']
             product.price = serializer.validated_data['price']
             product.unit = serializer.validated_data['unit']
             product.discount = serializer.validated_data['discount']
-            
+            product.updated_at = generate_datetime_now()
             product.save()
             return Response({"message": "Product updated successfully"}, status=status.HTTP_200_OK)
         
@@ -81,6 +90,8 @@ class ProductView(APIView):
 
         try:
             product = ProductDocument.get(id=pk)
+            if not product:
+                return Response({"error": "Product Not Found"}, status=status.HTTP_404_NOT_FOUND)
             product.delete()
             return Response({"message": "Product deleted successfully"}, status=status.HTTP_200_OK)
         
@@ -213,3 +224,32 @@ class ProductAggregationView(APIView):
                 return Response({"sum_price": sum_price})
             case _:
                 return Response({"error": "invalid function"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProductTemporalView(APIView):
+    def get(self, request):
+        gte = request.query_params.get('gte', None)
+        lte = request.query_params.get('lte', None)
+        search = ProductDocument.search()
+
+        if lte:
+            parsed_lte = parse_datetime(lte)
+            if not parsed_lte:
+                return Response(
+                    {"error": "Invalid date format. Use ISO 8601 (e.g., '2024-01-01T00:00:00Z')."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            search = search.filter('range', created_at={'lte': lte})
+
+        if gte:
+            parsed_gte = parse_datetime(gte)
+            if not parsed_gte:
+                return Response(
+                    {"error": "Invalid date format. Use ISO 8601 (e.g., '2024-01-01T00:00:00Z')."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            search = search.filter('range', created_at={'gte': gte})
+
+        results = search.execute()
+        products = [hit.json_serializable() for hit in results]
+        return Response(products, status=status.HTTP_200_OK)
