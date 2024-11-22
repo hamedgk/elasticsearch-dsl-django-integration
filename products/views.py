@@ -9,6 +9,7 @@ from .documents import ProductDocument
 from .utils.date_helpers import (
     generate_datetime_now,
     generate_epoch_millis_now,
+    is_valid_datetime,
 )
 
 class ProductView(APIView):
@@ -233,19 +234,19 @@ class ProductTemporalView(APIView):
         search = ProductDocument.search()
 
         if lte:
-            parsed_lte = parse_datetime(lte)
+            parsed_lte = is_valid_datetime(lte)
             if not parsed_lte:
                 return Response(
-                    {"error": "Invalid date format. Use ISO 8601 (e.g., '2024-01-01T00:00:00Z')."},
+                    {"error": "Invalid date format. Use ISO 8601 or timestamp"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             search = search.filter('range', created_at={'lte': lte})
 
         if gte:
-            parsed_gte = parse_datetime(gte)
+            parsed_gte = is_valid_datetime(gte)
             if not parsed_gte:
                 return Response(
-                    {"error": "Invalid date format. Use ISO 8601 (e.g., '2024-01-01T00:00:00Z')."},
+                    {"error": "Invalid date format. Use ISO 8601 or timestamp"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             search = search.filter('range', created_at={'gte': gte})
