@@ -2,12 +2,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from elasticsearch_dsl import Q, Search, UpdateByQuery, Index
-from django.utils.dateparse import parse_datetime
+
+import random
 
 from .serializers import ProductSerializer
 from .documents import ProductDocument
-from .utils.date_helpers import (
+from .utils.date import (
     generate_datetime_now,
+    generate_date_now,
     generate_epoch_millis_now,
     is_valid_datetime,
 )
@@ -43,15 +45,23 @@ class ProductView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         try:
-            now = generate_datetime_now()
-            mill = generate_epoch_millis_now()
+            temporal_mode = random.randint(0, 2)
+            match temporal_mode:
+                case 0:
+                    now = generate_datetime_now()
+                case 1:
+                    now = generate_epoch_millis_now()
+                case 2:
+                    now = generate_date_now()
+                case _:
+                    exit(1)
+            print(now)
             product = ProductDocument(
                 name=serializer.validated_data['name'],
                 price=serializer.validated_data['price'],
                 unit=serializer.validated_data['unit'],
                 discount=serializer.validated_data['discount'],
                 created_at=now,
-                updated_at=mill,
             )
             product.save()
             return Response({"message": "Product created successfully", "id": product.meta.id}, status=status.HTTP_201_CREATED)
@@ -237,7 +247,7 @@ class ProductTemporalView(APIView):
             parsed_lte = is_valid_datetime(lte)
             if not parsed_lte:
                 return Response(
-                    {"error": "Invalid date format. Use ISO 8601 or timestamp"},
+                    {"error": "Invalid date format. use timestamp or datetime or date"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             search = search.filter('range', created_at={'lte': lte})
@@ -246,7 +256,7 @@ class ProductTemporalView(APIView):
             parsed_gte = is_valid_datetime(gte)
             if not parsed_gte:
                 return Response(
-                    {"error": "Invalid date format. Use ISO 8601 or timestamp"},
+                    {"error": "Invalid date format. use timestamp or datetime or date"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             search = search.filter('range', created_at={'gte': gte})

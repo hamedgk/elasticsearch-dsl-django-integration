@@ -2,6 +2,7 @@ from elasticsearch_dsl import (
         Document, Text, Date, Keyword, Integer, Nested, InnerDoc, Short, Index
 )
 from elasticsearch_dsl.connections import connections
+from .utils.date import VariantFormatDate
 
 connections.create_connection(hosts=['elasticsearch'], timeout=3, max_retries=15, retry_on_timeout=True)
 
@@ -13,8 +14,8 @@ class ProductDocument(Document):
         price = Integer()
         discount = Short()
         unit = Text(fields={'keyword': Keyword()})
-        created_at = Date()
-        updated_at = Date()
+        created_at = VariantFormatDate(format="yyyy-MM-dd HH:mm:ss||epoch_millis||strict_date_optional_time")
+        updated_at = VariantFormatDate(format="yyyy-MM-dd HH:mm:ss||epoch_millis||strict_date_optional_time")
         categories = Nested(CategoryInnerDoc)
         class Index:
                 name = 'products'
